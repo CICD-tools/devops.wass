@@ -1,0 +1,50 @@
+#!/bin/sh
+
+# called by "git commit" with no arguments
+
+# to STOP the commit, this hook should exit with non-zero status after issuing an appropriate message
+
+# note: this is a *voluntary* client-side pre-commit hook to avoid committing unencrypted files
+# ... must be setup prior to using `git commit ...` on a *per-repo* level by running "dbin/setup.repo.githooks.{BAT.sh}"
+# to avoid the pre-commit verification for files which don't meet criteria, use `got commit --no-verify ...`
+
+if git rev-parse --verify HEAD >/dev/null 2>&1 ; then
+	against=HEAD
+else
+	# initial commit: diff against an empty tree object
+	against=$(git hash-object -t tree /dev/null)
+fi
+
+# * hooks.allow-unencrypted
+# use `git config hooks.allow-unencrypted false`
+allow_unencrypted=$(git config --bool hooks.allow-unencrypted)
+
+# redirect STDOUT to STDERR
+exec 1>&2
+
+# use `file` to detect non-"GPG encrypted" files within the commit
+if [ "$allow_unencrypted" != "true" ]; then
+    unencrypted_files="$( git diff --cached --name-only --diff-filter=d | xargs -r file -0 | grep --text -Ev "GPG.*?encrypted\sdata" | sed 's/\x0.*$//' )"
+    # echo "unencrypted_files=$unencrypted_files"
+    for file in $unencrypted_files ; do
+        # find any unencrypted files which are not specifically "allowed" (via '.gitignore')
+        non_allowed_files=$(
+            case "$file" in
+                *.gpg)
+                    # all '*.gpg' files are expected to be encrypted
+                    echo "$file" ;;
+                *)
+                    # any unencrypted file not "allowed" (aka, un-ignored) by '.gitignore' is reported
+                    git ls-files "$file" --exclude-standard --ignore ;;
+            esac
+            )
+    done
+    # echo "non_allowed_files=$non_allowed_files"
+    if [ -n "$non_allowed_files" ]; then
+        echo "ERR!: attempting to commit files which do not seem to be GPG encrypted; note: to force the commit, use \`git commit ... --no-verify\`"
+        for file in $non_allowed_files ; do
+            git ls-files "$file" | xargs -r file
+        done
+        exit 1
+    fi
+fi
