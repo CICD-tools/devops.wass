@@ -1,0 +1,11 @@
+*
+!*/
+!*.gpg
+
+# "allowed" unencrypted files
+!.gitignore
+!README.mkd
+!#githooks/pre-commit
+!#audit.repo.sh
+!#setup.repo.githooks.BAT
+!#setup.repo.githooks.sh
