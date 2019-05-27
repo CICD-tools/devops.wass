@@ -1,6 +1,7 @@
 *
 !*/
 !*.gpg
+!*.ssl
 
 # "allowed" unencrypted files
 !.gitignore

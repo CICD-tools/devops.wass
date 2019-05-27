@@ -26,13 +26,14 @@ done
 unencrypted_files="$(printf -- "$file_types" |
     grep --text --invert-match -aiE "empty" |
     grep --text --invert-match -aiE "cannot open.*?no such file" |
-    grep --text --invert-match -aiE "GPG.*?encrypted\sdata" |
+    grep --text --invert-match -aiE "\WGPG\s.*?encrypted\sdata\W" |
+    grep --text --invert-match -aiE "\Wopenssl\senc'd\W" |
     sed 's/\x0.*$//')"
 
-# unencrypted GPG-type files
+# unencrypted GPG-type or OpenSSL-type files
 for file in $unencrypted_files; do
     case $file in
-        *.gpg)
+        *.gpg|*.ssl)
             echo "ERR!: \"$file\" is NOT encrypted";
         ;;
     esac
