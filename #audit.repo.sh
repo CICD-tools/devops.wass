@@ -7,6 +7,7 @@
 file_types="$(git ls-files | xargs -r file -0 | hexdump -ve '/1 "%_c"')"
 
 # # empty files
+# # shellcheck disable=SC2059 ## note: $file_types is encoded; printf is used here to decode it
 # empty_files="$(printf -- "$file_types" |
 #     grep --text -aiE "empty" |
 #     sed 's/\x0.*$//')"
@@ -15,6 +16,7 @@ file_types="$(git ls-files | xargs -r file -0 | hexdump -ve '/1 "%_c"')"
 # done
 
 # missing files
+# shellcheck disable=SC2059 ## note: $file_types is encoded; printf is used here to decode it
 missing_files="$(printf -- "$file_types" |
     grep --text -aiE "cannot open.*?no such file" |
     sed 's/\x0.*$//')"
@@ -23,6 +25,7 @@ for file in $missing_files; do
 done
 
 # unencrypted files
+# shellcheck disable=SC2059 ## note: $file_types is encoded; printf is used here to decode it
 unencrypted_files="$(printf -- "$file_types" |
     grep --text --invert-match -aiE "empty" |
     grep --text --invert-match -aiE "cannot open.*?no such file" |
@@ -40,7 +43,7 @@ for file in $unencrypted_files; do
 done
 
 # non-"allowed" unencrypted files
-non_allowed_files="$(git ls-files $unencrypted_files --exclude-standard --ignore)"
+non_allowed_files="$(git ls-files "$unencrypted_files" --exclude-standard --ignore)"
 for file in $non_allowed_files; do
     echo "ERR!: \"$file\" is NOT encrypted";
 done
