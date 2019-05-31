@@ -3,7 +3,7 @@
 <!-- -## editors ## (emacs/sublime) -*- coding: utf8-nix; tab-width: 4; mode: markdown; indent-tabs-mode: nil; basic-offset: 2; st-word_wrap: 'true' -*- ## (jEdit) :tabSize=4:indentSize=4:mode=markdown: ## (notepad++) vim:tabstop=4:syntax=markdown:expandtab:smarttab:softtabstop=2 ## modeline (see <https://archive.is/djTUD>@@<http://webcitation.org/66W3EhCAP> ) -->
 <!-- spell-checker:ignore expandtab markdownlint modeline smarttab softtabstop -->
 <!-- spell-checker:words unencrypted -->
-<!-- spell-checker:ignore CICD gitignore githooks repo -->
+<!-- spell-checker:ignore CICD gitignore githooks repo openssl -->
 
 # DevOps with `git`, `gpg`, and a single secret (aka "With a Single Secret")
 
@@ -21,5 +21,17 @@ To setup a new local repository, enabling pre-commit protection:
 After this initial setup, the 'pre-commit' hook (in combination with *.gitignore*) will make it difficult to inadvertently commit any unencrypted files to the repository.
 
 ## Adding and retrieving secrets
+
+<!--
+ToDO: add notes re:security concerns and `openssl` options
+
+see ref: https://linux.die.net/man/1/openssl @@ https://archive.is/O4do5
+```
+pass:password
+the actual password is password. Since the password is visible to utilities (like 'ps' under Unix) this form should only be used where security is not important.
+env:var
+obtain the password from the environment variable var. Since the environment of other processes is visible on certain platforms (e.g. ps under certain Unix OSes) this option should be used with caution.
+```
+-->
 
 After setting the *secret* passphrase on a source machine (eg, `set PW=...` or `PW=...`), use `gpg --batch --passphrase "$PW" --symmetric FILE` to encrypt the file and then push it to the repository (eg, `git push`). On the receiving client machine(s), clone and pull the information from the repository (eg, `git pull`) and then use `gpg --batch --passphrase "$PW" --decrypt FILE` to decrypt the information.
