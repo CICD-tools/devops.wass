@@ -3,6 +3,14 @@
 # NOTE: bash C-strings (NUL-terminated) internally and so the NULs within the returned subshell text, delineating the file names, will be automatically stripped out (even if left in by `sed`)
 #   ... so, just assume files have neither NUL or LF (no-LF might not be a good assumption) within the filename
 
+# spell-checker:ignore (shell-commands) shellcheck xargs hexdump printf esac
+# spell-checker:ignore NULs subshell repo WGPG Wopenssl senc'd
+# spell-checker:words unencrypted
+
+# disable shellcheck "direct is unknown" warnings for the entire script, allowing comments on shellcheck directive lines
+# shellcheck disable=SC1107
+true
+
 # file "types" (according to `file`) of committed repo files
 file_types="$(git ls-files | xargs -r file -0 | hexdump -ve '/1 "%_c"')"
 
