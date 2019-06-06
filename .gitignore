@@ -10,3 +10,4 @@
 !#audit.repo.sh
 !#setup.repo.githooks.BAT
 !#setup.repo.githooks.sh
+!scripts/get-bundle.sh
