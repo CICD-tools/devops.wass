@@ -41,5 +41,5 @@ echo "git bundle-pull"
 git -c advice.detachedhead=false bundle-pull || { echo "ERR!: \`git bundle-pull\` failed (within \"${DIR}\")" 1>&2 ; exit 1 ; }
 # echo "git bundle-pull \"${FETCH}\""
 # git bundle-pull "${FETCH}" || { echo "ERR!: \`git bundle-pull \"${FETCH}\"\` failed (within \"${DIR}\")" 1>&2 ; exit 1 ; } ;
-# echo "chmod -R go-rwx \"${DIR}\""
+echo "chmod -R go-rwx \"${DIR}\""
 chmod -R go-rwx "${DIR}" || { echo "ERR!: \`chmod failed (within \"${DIR}\")" 1>&2 ; exit 1 ; }
