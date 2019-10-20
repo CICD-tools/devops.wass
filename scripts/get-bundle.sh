@@ -15,7 +15,7 @@ DIR=$(mkdir -p -- "${DIR}" ; cd -- "${DIR}" || { echo "ERR!: unable to \`cd -- \
 # echo "DIR=${DIR}"
 
 # require `git`
-which git || { sudo apt-get -y install git </dev/null || { echo "ERR!: unable to install \`git\`" >&2 ; exit -1; } }
+which git >/dev/null || { sudo apt-get -y install git </dev/null || { echo "ERR!: unable to install \`git\`" >&2 ; exit -1; } }
 
 # shellcheck disable=SC2016
 {
@@ -33,13 +33,13 @@ git config --global alias.bundle-pull '!f() { git bundle-fetch $@ | grep -Ei "he
 #
 }
 # echo "cd -- \"${DIR}\""
-cd -- "${DIR}" || { echo "ERR!: unable to \`cd -- \"${DIR}\"\`" 1>&2 ; exit 1 ; } ;
-git init || { echo "ERR!: unable to \`git init\` (within \"${DIR}\")" 1>&2 ; exit 1 ; } ;
+cd -- "${DIR}" || { echo "ERR!: unable to \`cd -- \"${DIR}\"\`" 1>&2 ; exit 1 ; }
+git init || { echo "ERR!: unable to \`git init\` (within \"${DIR}\")" 1>&2 ; exit 1 ; }
 echo "git bundle-config FETCH \"${FETCH}\""
-git bundle-config FETCH "${FETCH}" || { echo "ERR!: \`git bundle-config FETCH \"${FETCH}\"\` failed (within \"${DIR}\")" 1>&2 ; exit 1 ; } ;
+git bundle-config FETCH "${FETCH}" || { echo "ERR!: \`git bundle-config FETCH \"${FETCH}\"\` failed (within \"${DIR}\")" 1>&2 ; exit 1 ; }
 echo "git bundle-pull"
-git -c advice.detachedhead=false bundle-pull || { echo "ERR!: \`git bundle-pull\` failed (within \"${DIR}\")" 1>&2 ; exit 1 ; } ;
+git -c advice.detachedhead=false bundle-pull || { echo "ERR!: \`git bundle-pull\` failed (within \"${DIR}\")" 1>&2 ; exit 1 ; }
 # echo "git bundle-pull \"${FETCH}\""
 # git bundle-pull "${FETCH}" || { echo "ERR!: \`git bundle-pull \"${FETCH}\"\` failed (within \"${DIR}\")" 1>&2 ; exit 1 ; } ;
-echo "chmod -R go-rwx \"${DIR}\""
-chmod -R go-rwx "${DIR}" || { echo "ERR!: \`chmod failed (within \"${DIR}\")" 1>&2 ; exit 1 ; } ;
+# echo "chmod -R go-rwx \"${DIR}\""
+chmod -R go-rwx "${DIR}" || { echo "ERR!: \`chmod failed (within \"${DIR}\")" 1>&2 ; exit 1 ; }
