@@ -1,8 +1,8 @@
 #! /bin/bash
 # get-bundle [FETCH] [DIR]
 
-## spell-checker:ignore mkdir eval openssl chmod readlink xargs shellcheck
-## spell-checker:ignore devops toplevel BUNDIR unbundle
+## spell-checker:ignore (shell-commands) chmod eval mkdir openssl readlink shellcheck xargs
+## spell-checker:ignore BUNDIR devops toplevel unbundle
 
 set -e ## '-e' == exit if pipeline fails
 
