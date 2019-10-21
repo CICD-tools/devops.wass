@@ -3,7 +3,7 @@
 # NOTE: bash C-strings (NUL-terminated) internally and so the NULs within the returned subshell text, delineating the file names, will be automatically stripped out (even if left in by `sed`)
 #   ... so, just assume files have neither NUL or LF (no-LF might not be a good assumption) within the filename
 
-# spell-checker:ignore shellcheck xargs hexdump printf esac
+# spell-checker:ignore (shell-commands) shellcheck xargs hexdump printf esac
 # spell-checker:ignore NULs subshell repo WGPG Wopenssl senc'd
 # spell-checker:words unencrypted
 
