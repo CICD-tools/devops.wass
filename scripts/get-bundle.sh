@@ -6,7 +6,7 @@
 
 set -e ## '-e' == exit if pipeline fails
 
-export FETCH="${1:-${FETCH}}" ; FETCH="${FETCH:-https://cdn.statically.io/gh/CICD-tools/devops.wass/master/devops.git.bundle.ssl?env=dev}"
+export FETCH="${1:-${FETCH}}" ; FETCH="${FETCH:-https://rawcdn.githack.com/CICD-tools/devops.wass/master/devops.git.bundle.ssl}"
 export DIR="${2:-${DIR}}" ; DIR="${DIR:-${HOME}/.secrets.devops}"
 
 DIR=$(mkdir -p -- "${DIR}" ; cd -- "${DIR}" || { echo "ERR!: unable to \`cd -- \"${DIR}\"\`" 1>&2 ; exit 1 ; } ; pwd)
