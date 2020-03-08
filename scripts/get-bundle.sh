@@ -14,9 +14,9 @@ DIR=$(mkdir -p -- "${DIR}" ; cd -- "${DIR}" || { echo "ERR!: unable to \`cd -- \
 # echo "FETCH=${FETCH}"
 # echo "DIR=${DIR}"
 
-export OSID="$(uname -s | sed 's/_NT[-].*$//i' | tr '[:upper:]' '[:lower:]')"
-export OSID_like="$(grep -i '^id_like=' /etc/os-release 2>/dev/null | sed 's/^id_like=//i' | tr '[:upper:]' '[:lower:]')"
-export OSID_name="$(grep -i '^id=' /etc/os-release 2>/dev/null | sed 's/^id=//i' | tr '[:upper:]' '[:lower:]')"
+export OSID="$(uname -s | sed 's/_NT[-].*$//i' | sed 's/"//g' | tr '[:upper:]' '[:lower:]')"
+export OSID_like="$(grep -i '^id_like=' /etc/os-release 2>/dev/null | sed 's/^id_like=//i' | sed 's/"//g' | tr '[:upper:]' '[:lower:]')"
+export OSID_name="$(grep -i '^id=' /etc/os-release 2>/dev/null | sed 's/^id=//i' | sed 's/"//g' | tr '[:upper:]' '[:lower:]')"
 # QNAP/QTS OSID_name fixup
 [ -z "$OSID_name" ] && grep -q QNAP /etc/issue && export OSID_name=qts
 [ -z "$OSID_name" ] && [ -f /etc/config/qpkg.conf ] && export OSID_name=qts
@@ -25,7 +25,7 @@ export OSID_name="$(grep -i '^id=' /etc/os-release 2>/dev/null | sed 's/^id=//i'
 
 case "$OSID_like" in
     "arch" ) _INSTALL_git="pacman -S --refresh && pacman -S --no-confirm git" ;;
-    "suse" ) _INSTALL_git="false" ;;
+    "suse" ) _INSTALL_git="zypper refresh && zypper --assume-yes install git" ;;
     "*" ) _INSTALL_git="sudo apt-get update && sudo apt-get -y install git </dev/null" ;; # debian-like is default
 esac
 
