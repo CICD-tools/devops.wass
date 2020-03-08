@@ -24,9 +24,9 @@ export OSID_name="$(grep -i '^id=' /etc/os-release 2>/dev/null | sed 's/^id=//i'
 [ -z "$OSID_like" ] && export OSID_like="$OSID_name"
 
 case "$OSID_like" in
-    "arch" ) _INSTALL_git="pacman -S --refresh && pacman -S --no-confirm git" ;;
-    "suse" ) _INSTALL_git="zypper refresh && zypper --assume-yes install git" ;;
-    "*" ) _INSTALL_git="sudo apt-get update && sudo apt-get -y install git </dev/null" ;; # debian-like is default
+    "arch" ) _INSTALL_git="pacman -S --refresh && pacman -S --noconfirm git" ;;
+    "suse" ) _INSTALL_git="zypper refresh && zypper install --no-confirm git" ;;
+    "*" ) _INSTALL_git="sudo apt-get update && sudo apt-get install --assume-yes git </dev/null" ;; # debian-like is default
 esac
 
 # require `git`
