@@ -24,6 +24,20 @@ export OSID OSID_like OSID_name
 # OSID_like fixup
 [ -z "$OSID_like" ] && export OSID_like="$OSID_name"
 
+case "$OSID_name" in
+    "kali" )
+        # WSL kali-linux is *old* and has expired keys
+        # ref: <https://unix.stackexchange.com/questions/421821/invalid-signature-for-kali-linux-repositories-the-following-signatures-were-i>
+        # !maint: KEY_FILENAME will likely need to be updated periodically
+        DEST_FILE=$(mktemp kali-keyring.XXXXXXXXXX --suffix=.deb --tmpdir)
+        KEY_HOSTDIR="https://http.kali.org/kali/pool/main/k/kali-archive-keyring"
+        KEY_FILENAME="kali-archive-keyring_2022.1_all.deb"
+        wget --no-check-certificate "${KEY_HOSTDIR}/${KEY_FILENAME}" -O "${DEST_FILE}"
+        sudo dpkg -i "${DEST_FILE}"
+    ;;
+esac
+
+
 case "$OSID_like" in
     "arch" ) _INSTALL_git="pacman -S --refresh && pacman -S --noconfirm git" ;;
     "suse" ) _INSTALL_git="zypper refresh && zypper install --no-confirm git" ;;
