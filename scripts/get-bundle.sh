@@ -24,28 +24,27 @@ export OSID OSID_like OSID_name
 # OSID_like fixup
 [ -z "$OSID_like" ] && export OSID_like="$OSID_name"
 
-case "$OSID_name" in
-    "kali" )
-        # WSL kali-linux is *old* and has expired keys
-        # ref: <https://unix.stackexchange.com/questions/421821/invalid-signature-for-kali-linux-repositories-the-following-signatures-were-i>
-        # !maint: KEY_FILENAME will likely need to be updated periodically
-        DEST_FILE=$(mktemp kali-keyring.XXXXXXXXXX --suffix=.deb --tmpdir)
-        KEY_HOSTDIR="https://http.kali.org/kali/pool/main/k/kali-archive-keyring"
-        KEY_FILENAME="kali-archive-keyring_2022.1_all.deb"
-        wget --no-check-certificate "${KEY_HOSTDIR}/${KEY_FILENAME}" -O "${DEST_FILE}"
-        sudo dpkg -i "${DEST_FILE}"
-    ;;
-esac
-
+# case "$OSID_name" in
+#     "kali" )
+#         # `wsl --install ...` kali-linux is *old* and has expired keys
+#         # ref: <https://unix.stackexchange.com/questions/421821/invalid-signature-for-kali-linux-repositories-the-following-signatures-were-i>
+#         # !maint: KEY_FILENAME will likely need to be updated periodically
+#         DEST_FILE=$(mktemp kali-keyring.XXXXXXXXXX --suffix=.deb --tmpdir)
+#         KEY_HOSTDIR="https://http.kali.org/kali/pool/main/k/kali-archive-keyring"
+#         KEY_FILENAME="kali-archive-keyring_2022.1_all.deb"
+#         wget --no-check-certificate "${KEY_HOSTDIR}/${KEY_FILENAME}" -O "${DEST_FILE}"
+#         sudo dpkg -i "${DEST_FILE}"
+#     ;;
+# esac
 
 case "$OSID_like" in
     "arch" ) _INSTALL_git="pacman -S --refresh && pacman -S --noconfirm git" ;;
     "suse" ) _INSTALL_git="zypper refresh && zypper install --no-confirm git" ;;
-    * ) _INSTALL_git="sudo apt-get update && sudo apt-get install --assume-yes git </dev/null" ;; # debian-like is default
+    * ) _INSTALL_git="sudo apt-get update && sudo apt-get install --assume-yes git" ;; # debian-like is default
 esac
 
 # require `git`
-which git >/dev/null || { ${_INSTALL_git} || { echo "ERR!: unable to install \`git\`" >&2 ; exit 1; } }
+which git >/dev/null || { eval "${_INSTALL_git}" || { echo "ERR!: unable to install \`git\`" >&2 ; exit 1; } }
 
 # shellcheck disable=SC2016
 {
