@@ -7,7 +7,7 @@
 
 # DevOps with `git`, `gpg`, and a single secret (aka "With a Single Secret")
 
-This repository contains encrypted secrets for use in CICD, VM, and other DevOps applications. Additionally, the repository contains a pre-commit hook, setup and audit scripts, and a *.gitignore* which help assure that no unencrypted information is accidentally committed to the repository.
+This repository contains encrypted secrets for use in CICD, VM, and other DevOps applications. Additionally, the repository contains a pre-commit hook, setup and audit scripts, and a _.gitignore_ which help assure that no unencrypted information is accidentally committed to the repository.
 
 However, even when encrypted with strong encryption and passwords, the secrets committed here should be considered semi-compromised and rotated with some planned frequency.
 
@@ -18,7 +18,7 @@ To setup a new local repository, enabling pre-commit protection:
 1. clone the repository, and then
 2. use `./#setup.repo.githooks.{BAT,sh}` to initialize the `git` hook architecture.
 
-After this initial setup, the 'pre-commit' hook (in combination with *.gitignore*) will make it difficult to inadvertently commit any unencrypted files to the repository.
+After this initial setup, the 'pre-commit' hook (in combination with _.gitignore_) will make it difficult to inadvertently commit any unencrypted files to the repository.
 
 ## Adding and retrieving secrets
 
@@ -34,4 +34,13 @@ obtain the password from the environment variable var. Since the environment of 
 ```
 -->
 
-After setting the *secret* passphrase on a source machine (eg, `set PW=...` or `PW=...`), use `gpg --batch --passphrase "$PW" --symmetric FILE` to encrypt the file and then push it to the repository (eg, `git push`). On the receiving client machine(s), clone and pull the information from the repository (eg, `git pull`) and then use `gpg --batch --passphrase "$PW" --decrypt FILE` to decrypt the information.
+After setting the _secret_ passphrase on a source machine (eg, `set PW=...` or `PW=...`), use `gpg --batch --passphrase "$PW" --symmetric FILE` to encrypt the file and then push it to the repository (eg, `git push`). On the receiving client machine(s), clone and pull the information from the repository (eg, `git pull`) and then use `gpg --batch --passphrase "$PW" --decrypt FILE` to decrypt the information.
+
+## requires NOPASSWD `sudo`
+
+- required for superuser actions such as installing dependencies
+- install sudoers files into `/etc/sudoers.d`
+  - `sudoers` refs
+    - <https://www.sudo.ws/docs/man/1.8.15/sudoers.man> @@ <https://archive.is/s9Wtk>
+    - <https://unix.stackexchange.com/questions/423294/are-the-files-in-etc-sudoers-d-read-in-a-particular-order>
+    - <https://unix.stackexchange.com/questions/356582/sudoers-and-defaults>
