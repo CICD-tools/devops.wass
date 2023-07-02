@@ -6,10 +6,19 @@
 
 set -e ## '-e' == exit if pipeline fails
 
-export FETCH="${1:-${FETCH}}" ; FETCH="${FETCH:-https://rawcdn.githack.com/CICD-tools/devops.wass/master/devops.git.bundle.ssl}"
-export DIR="${2:-${DIR}}" ; DIR="${DIR:-${HOME}/.secrets.devops}"
+export FETCH="${1:-${FETCH}}"
+FETCH="${FETCH:-https://rawcdn.githack.com/CICD-tools/devops.wass/master/devops.git.bundle.ssl}"
+export DIR="${2:-${DIR}}"
+DIR="${DIR:-${HOME}/.secrets.devops}"
 
-DIR=$(mkdir -p -- "${DIR}" ; cd -- "${DIR}" || { echo "ERR!: unable to \`cd -- \"${DIR}\"\`" 1>&2 ; exit 1 ; } ; pwd)
+DIR=$(
+    mkdir -p -- "${DIR}"
+    cd -- "${DIR}" || {
+        echo "ERR!: unable to \`cd -- \"${DIR}\"\`" 1>&2
+        exit 1
+    }
+    pwd
+)
 
 # echo "FETCH=${FETCH}"
 # echo "DIR=${DIR}"
@@ -38,13 +47,16 @@ export OSID OSID_like OSID_name
 # esac
 
 case "$OSID_like" in
-    "arch" ) _INSTALL_git="pacman -S --refresh && pacman -S --noconfirm git" ;;
-    "suse" ) _INSTALL_git="zypper refresh && zypper install --no-confirm git" ;;
-    * ) _INSTALL_git="sudo apt-get update && sudo apt-get install --assume-yes git" ;; # debian-like is default
+"arch") _INSTALL_git="pacman -S --refresh && pacman -S --noconfirm git" ;;
+"suse") _INSTALL_git="zypper refresh && zypper install --no-confirm git" ;;
+*) _INSTALL_git="sudo apt-get update && sudo apt-get install --assume-yes git" ;; # debian-like is default
 esac
 
 # require `git`
-which git >/dev/null || { eval "${_INSTALL_git}" || { echo "ERR!: unable to install \`git\`" >&2 ; exit 1; } }
+which git >/dev/null || { eval "${_INSTALL_git}" || {
+    echo "ERR!: unable to install \`git\`" >&2
+    exit 1
+}; }
 
 # shellcheck disable=SC2016
 {
@@ -62,13 +74,28 @@ which git >/dev/null || { eval "${_INSTALL_git}" || { echo "ERR!: unable to inst
     #
 }
 # echo "cd -- \"${DIR}\""
-cd -- "${DIR}" || { echo "ERR!: unable to \`cd -- \"${DIR}\"\`" 1>&2 ; exit 1 ; }
-git init || { echo "ERR!: unable to \`git init\` (within \"${DIR}\")" 1>&2 ; exit 1 ; }
+cd -- "${DIR}" || {
+    echo "ERR!: unable to \`cd -- \"${DIR}\"\`" 1>&2
+    exit 1
+}
+git init || {
+    echo "ERR!: unable to \`git init\` (within \"${DIR}\")" 1>&2
+    exit 1
+}
 echo "git bundle-config FETCH \"${FETCH}\""
-git bundle-config FETCH "${FETCH}" || { echo "ERR!: \`git bundle-config FETCH \"${FETCH}\"\` failed (within \"${DIR}\")" 1>&2 ; exit 1 ; }
+git bundle-config FETCH "${FETCH}" || {
+    echo "ERR!: \`git bundle-config FETCH \"${FETCH}\"\` failed (within \"${DIR}\")" 1>&2
+    exit 1
+}
 echo "git bundle-pull"
-git -c advice.detachedhead=false bundle-pull || { echo "ERR!: \`git bundle-pull\` failed (within \"${DIR}\")" 1>&2 ; exit 1 ; }
+git -c advice.detachedhead=false bundle-pull || {
+    echo "ERR!: \`git bundle-pull\` failed (within \"${DIR}\")" 1>&2
+    exit 1
+}
 # echo "git bundle-pull \"${FETCH}\""
 # git bundle-pull "${FETCH}" || { echo "ERR!: \`git bundle-pull \"${FETCH}\"\` failed (within \"${DIR}\")" 1>&2 ; exit 1 ; } ;
 echo "chmod -R go-rwx \"${DIR}\""
-chmod -R go-rwx "${DIR}" || { echo "ERR!: \`chmod failed (within \"${DIR}\")" 1>&2 ; exit 1 ; }
+chmod -R go-rwx "${DIR}" || {
+    echo "ERR!: \`chmod failed (within \"${DIR}\")" 1>&2
+    exit 1
+}
