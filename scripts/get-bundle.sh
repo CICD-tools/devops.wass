@@ -1,7 +1,7 @@
 #! /bin/bash
 # get-bundle [FETCH] [DIR]
 
-## spell-checker:ignore (shell-commands) chmod eval mkdir openssl readlink shellcheck xargs
+## spell-checker:ignore (names) QNAP qpkg (shell/nix) chmod eval mkdir mktemp openssl pacman readlink shellcheck xargs (vars) KFILE OSID tmpdir HOSTDIR () detachedHead maint noConfirm gsub
 ## spell-checker:ignore BUNDIR devops toplevel unbundle
 
 set -e ## '-e' == exit if pipeline fails
