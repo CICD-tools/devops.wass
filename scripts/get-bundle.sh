@@ -7,7 +7,7 @@
 set -e ## '-e' == exit if pipeline fails
 
 export FETCH="${1:-${FETCH}}"
-FETCH="${FETCH:-https://rawcdn.githack.com/CICD-tools/devops.wass/master/devops.git.bundle.ssl}"
+FETCH="${FETCH:-https://rawcdn.githack.com/CICD-tools/devops.wass/master/devops.git.bundle.gpg}"
 export DIR="${2:-${DIR}}"
 DIR="${DIR:-${HOME}/.secrets.devops}"
 
@@ -47,13 +47,13 @@ export OSID OSID_like OSID_name
 # esac
 
 case "$OSID_like" in
-"arch") _INSTALL_git="pacman -S --refresh && pacman -S --noconfirm git" ;;
-"suse") _INSTALL_git="zypper refresh && zypper install --no-confirm git" ;;
-*) _INSTALL_git="sudo apt-get update && sudo apt-get install --assume-yes git" ;; # debian-like is default
+"arch") _INSTALL_deps="pacman -S --refresh && pacman -S --noconfirm git gpg" ;;
+"suse") _INSTALL_deps="zypper refresh && zypper install --no-confirm git gpg" ;;
+*) _INSTALL_deps="sudo apt-get update && sudo apt-get install --assume-yes git gpg" ;; # debian-like is default
 esac
 
 # require `git`
-which git >/dev/null || { eval "${_INSTALL_git}" || {
+which git >/dev/null || { eval "${_INSTALL_deps}" || {
     echo "ERR!: unable to install \`git\`" >&2
     exit 1
 }; }
@@ -64,11 +64,11 @@ which git >/dev/null || { eval "${_INSTALL_git}" || {
     # :: * `git bundle-config [VAR [VALUE]]` # VAR == a valid POSIX shell variable name ; VALUE == optional configuration value to be saved (defaults to current value of shell VAR); with no arguments, prints current configuration
     git config --global alias.bundle-config '!f() { ROOT="$(git rev-parse --show-toplevel)" || { echo "git repository error" 1>&2 ; exit 1 ; } ; BUNDIR="${ROOT}/.git/bundle" ; if [ ! -d "${BUNDIR}" ] ; then mkdir -p "${BUNDIR}" ; chmod -R go-rwx "${BUNDIR}" ; fi ; KFILE="${BUNDIR}/git.bundle.env" ; if [ ! -e "${KFILE}" ] ; then touch "${KFILE}" ; chmod go-rwx "${KFILE}" ; fi ; VAR="$1" ; [ -n "${VAR}" ] || { cat "${KFILE}" ; exit 0 ; } ; VALUE="${2}" ; [ -z "${VALUE}" ] && eval "VALUE=\$${VAR}" ; LINES="$( echo "${VAR}=${VALUE}" | tac - "${KFILE}" | awk '"'"'{ m = match($0,"^(\\s*\\S+)=(.*)$") ; if (m>0) { split($0,a,"="); gsub(/\s+/,"",a[1]); if (++seen[a[1]]<2) { print } } else { print } }'"'"' | tac )" ; echo "${LINES}" > "${KFILE}" ; } ; f'
     # :: * `git bundle-encrypt`
-    git config --global alias.bundle-encrypt '!f() { ROOT="$(git rev-parse --show-toplevel)" || { echo "git repository error" 1>&2 ; exit 1 ; } ; BUNDIR="${ROOT}/.git/bundle" ; if [ ! -d "${BUNDIR}" ] ; then mkdir -p "${BUNDIR}" ; chmod -R go-rwx "${BUNDIR}" ; fi ; git bundle create "${BUNDIR}/git.bundle" --all ; eval "CIPHER="" ; DIGEST="" ; ITERATIONS="" ; KEY="" ; SALT="" ; $(if [ -f "${BUNDIR}/git.bundle.env" ] ; then grep -E "^\s*(CIPHER|DIGEST|ITERATIONS|KEY|SALT)=" "${BUNDIR}/git.bundle.env" ; fi )" ; if [ -z "${CIPHER}" ] ; then CIPHER=aes-256-cbc ; echo "CIPHER="${CIPHER}"" >> "${BUNDIR}/git.bundle.env" ; fi ; if [ -z "${DIGEST}" ] ; then DIGEST=sha256 ; echo "DIGEST="${DIGEST}"" >> "${BUNDIR}/git.bundle.env" ; fi ; if [ -z "${ITERATIONS}" ] ; then ITERATIONS=500000 ; echo "ITERATIONS="${ITERATIONS}"" >> "${BUNDIR}/git.bundle.env" ; fi ; if [ -z "${KEY}" ] ; then KEY="$(openssl rand -base64 -rand "${BUNDIR}/git.bundle" 48)" ; echo "KEY="${KEY}"" >> "${BUNDIR}/git.bundle.env" ; fi ; if [ -z "${SALT}" ] ; then SALT="$(openssl rand -hex -rand "${BUNDIR}/git.bundle" 8)" ; echo "SALT="${SALT}"" >> "${BUNDIR}/git.bundle.env" ; fi ; rm "${BUNDIR}/git.bundle.ssl" 2>/dev/null ; openssl enc -e -${CIPHER} -md "${DIGEST}" -iter "${ITERATIONS}" -k "${KEY}" -S "${SALT}" -in "${BUNDIR}/git.bundle" -out "${BUNDIR}/git.bundle.ssl" 2>/dev/null ; chmod go-rwx "${BUNDIR}/git.bundle.ssl" ; } ; f'
+    git config --global alias.bundle-encrypt '!f() { ROOT="$(git rev-parse --show-toplevel)" || { echo "git repository error" 1>&2 ; exit 1 ; } ; BUNDIR="${ROOT}/.git/bundle" ; if [ ! -d "${BUNDIR}" ] ; then mkdir -p "${BUNDIR}" ; chmod -R go-rwx "${BUNDIR}" ; fi ; git bundle create "${BUNDIR}/git.bundle" --all ; eval "KEY="" ; $(if [ -f "${BUNDIR}/git.bundle.env" ] ; then grep -E "^\s*(KEY)=" "${BUNDIR}/git.bundle.env" ; fi )" ; if [ -z "${KEY}" ] ; then KEY="$(openssl rand -base64 -rand "${BUNDIR}/git.bundle" 48)" ; echo "KEY="${KEY}"" >> "${BUNDIR}/git.bundle.env" ; fi ; rm "${BUNDIR}/git.bundle.gpg" 2>/dev/null ; gpg --symmetric -z 9 --batch --yes --passphrase "${KEY}" "${BUNDIR}/git.bundle" ; chmod go-rwx "${BUNDIR}/git.bundle.gpg" ; } ; f'
     # :: * `git bundle-push [PUSH]` # PUSH == a valid `scp` target
-    git config --global alias.bundle-push '!f() { ROOT="$(git rev-parse --show-toplevel)" || { echo "git repository error" 1>&2 ; exit 1 ; } ; BUNDIR="${ROOT}/.git/bundle" ; PUSH="$1"; [ -z "${PUSH}" ] && eval "PUSH="" ; $(if [ -f "${BUNDIR}/git.bundle.env" ] ; then grep -E "^\s*(PUSH)=" "${BUNDIR}/git.bundle.env" ; fi )" ; git bundle-encrypt ; if [ -n "${PUSH}" ] ; then scp "${BUNDIR}/git.bundle.ssl" "${PUSH}" ; else echo "ERR!: missing PUSH target" 1>&2 ; exit 1 ; fi; } ; f'
+    git config --global alias.bundle-push '!f() { ROOT="$(git rev-parse --show-toplevel)" || { echo "git repository error" 1>&2 ; exit 1 ; } ; BUNDIR="${ROOT}/.git/bundle" ; PUSH="$1"; [ -z "${PUSH}" ] && eval "PUSH="" ; $(if [ -f "${BUNDIR}/git.bundle.env" ] ; then grep -E "^\s*(PUSH)=" "${BUNDIR}/git.bundle.env" ; fi )" ; git bundle-encrypt ; if [ -n "${PUSH}" ] ; then scp "${BUNDIR}/git.bundle.gpg" "${PUSH}" ; else echo "ERR!: missing PUSH target" 1>&2 ; exit 1 ; fi; } ; f'
     # :: * `git bundle-fetch [FETCH]` # FETCH == a valid `curl` source ; from the CLI, simple file paths are converted to curl-compatible arguments
-    git config --global alias.bundle-fetch '!f() { ROOT="$(git rev-parse --show-toplevel)" || { echo "git repository error" 1>&2 ; exit 1 ; } ; BUNDIR="${ROOT}/.git/bundle" ; if [ ! -d "${BUNDIR}" ] ; then mkdir -p "${BUNDIR}" ; chmod -R go-rwx "${BUNDIR}" ; fi ; FETCHER="curl -#L" ; eval "FETCH="" ; $(if [ -f "${BUNDIR}/git.bundle.env" ] ; then grep -E "^\s*(FETCH)=" "${BUNDIR}/git.bundle.env" ; fi )" ; [ -n "$1" ] && { if [ -z "${FETCH}" ] ; then git bundle-config FETCH "$1" ; fi ; FETCH="$1" ; } ; [ -f "${FETCH}" ] && { FETCH="$(readlink -f "${FETCH}")" ; FETCHER="cat" ; } ; eval "CIPHER=aes-256-cbc ; DIGEST=sha256 ; ITERATIONS=500000 ; KEY="" ; $(if [ -f "${BUNDIR}/git.bundle.env" ] ; then grep -E "^\s*(CIPHER|DIGEST|ITERATIONS|KEY|SALT)=" "${BUNDIR}/git.bundle.env" ; fi )" ; OPTIONS="-${CIPHER} -md "${DIGEST}" -iter "${ITERATIONS}" -k "${KEY}" -S "${SALT}"" ; if [ -n "${FETCH}" ] ; then echo "FETCHER=${FETCHER} ; FETCH=${FETCH} ; OPTIONS=${OPTIONS}" ; ${FETCHER} "${FETCH}" | openssl enc -d ${OPTIONS} > "${BUNDIR}/git.bundle" 2>/dev/null ; [ "$?" -ne 0 ] && { echo "ERR!: decryption error" 1>&2 ; exit 1 ; } || git bundle unbundle "${BUNDIR}/git.bundle" ; else echo "ERR!: missing FETCH/PULL source" 1>&2 ; exit 1 ; fi ; } ; f'
+    git config --global alias.bundle-fetch '!f() { ROOT="$(git rev-parse --show-toplevel)" || { echo "git repository error" 1>&2 ; exit 1 ; } ; BUNDIR="${ROOT}/.git/bundle" ; if [ ! -d "${BUNDIR}" ] ; then mkdir -p "${BUNDIR}" ; chmod -R go-rwx "${BUNDIR}" ; fi ; FETCHER="curl -#L" ; eval "FETCH="" ; $(if [ -f "${BUNDIR}/git.bundle.env" ] ; then grep -E "^\s*(FETCH)=" "${BUNDIR}/git.bundle.env" ; fi )" ; [ -n "$1" ] && { if [ -z "${FETCH}" ] ; then git bundle-config FETCH "$1" ; fi ; FETCH="$1" ; } ; [ -f "${FETCH}" ] && { FETCH="$(readlink -f "${FETCH}")" ; FETCHER="cat" ; } ; eval "KEY="" ; $(if [ -f "${BUNDIR}/git.bundle.env" ] ; then grep -E "^\s*(KEY)=" "${BUNDIR}/git.bundle.env" ; fi )" ; OPTIONS="--passphrase "${KEY}"" ; if [ -n "${FETCH}" ] ; then echo "FETCHER=${FETCHER} ; FETCH=${FETCH}" ; ${FETCHER} "${FETCH}" | gpg --decrypt --batch --yes ${OPTIONS} > "${BUNDIR}/git.bundle" ; [ "$?" -ne 0 ] && { echo "ERR!: decryption error" 1>&2 ; exit 1 ; } || git bundle unbundle "${BUNDIR}/git.bundle" ; else echo "ERR!: missing FETCH/PULL source" 1>&2 ; exit 1 ; fi ; } ; f'
     # :: * `git bundle-pull [FETCH]` # FETCH == a valid `curl` source ; from the CLI, simple file paths are converted to curl-compatible arguments
     git config --global alias.bundle-pull '!f() { git bundle-fetch $@ | grep -Ei "head$" | sed -E "s/\s+head//I" | xargs git checkout ; } ; f'
     #
