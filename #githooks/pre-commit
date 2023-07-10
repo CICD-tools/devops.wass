@@ -8,11 +8,11 @@
 # ... must be setup prior to using `git commit ...` on a *per-repo* level by running "dbin/setup.repo.githooks.{BAT.sh}"
 # to avoid the pre-commit verification for files which don't meet criteria, use `got commit --no-verify ...`
 
-if git rev-parse --verify HEAD >/dev/null 2>&1 ; then
-	against=HEAD
+if git rev-parse --verify HEAD >/dev/null 2>&1; then
+    against=HEAD
 else
-	# initial commit: diff against an empty tree object
-	against=$(git hash-object -t tree /dev/null)
+    # initial commit: diff against an empty tree object
+    against=$(git hash-object -t tree /dev/null)
 fi
 
 # * hooks.allow-unencrypted
@@ -23,28 +23,31 @@ allow_unencrypted=$(git config --bool hooks.allow-unencrypted)
 exec 1>&2
 
 # use `file` to detect non-"GPG encrypted" files within the commit
-# note: for GPG encrypted data, `file FILE.gpg` => "GPG symmetrically encrypted data (AES256 cipher)"
+# note: for GPG encrypted files ... `file FILE.gpg` => "GPG symmetrically encrypted data (AES256 cipher)"
+# note: for PGP encrypted files ... `file FILE.pgp` => "PGP symmetric key encrypted data - AES with 256-bit key"
 # note: for OpenSSL encrypted files ... `file FILE.ssl` => "openssl enc'd data with salted password"
 if [ "$allow_unencrypted" != "true" ]; then
-    unencrypted_files="$( git diff --cached --name-only --diff-filter=d | xargs -r file -0 | grep --text -Eiv "(\WGPG\s.*?encrypted\sdata\W)|(\Wopenssl\senc'd\W)" | sed 's/\x0.*$//' )"
+    unencrypted_files="$(git diff --cached --name-only --diff-filter=d | xargs -r file -0 | grep --text -Eiv "(\W(GPG|PGP)\s.*?encrypted\sdata\W)|(\Wopenssl\senc'd\W)" | sed 's/\x0.*$//')"
     # echo "unencrypted_files=$unencrypted_files"
-    for file in $unencrypted_files ; do
+    for file in $unencrypted_files; do
         # find any unencrypted files which are not specifically "allowed" (via '.gitignore')
         non_allowed_files=$(
             case "$file" in
-                *.gpg|*.ssl)
-                    # all '*.gpg' and '*.ssl' files are expected to be encrypted
-                    echo "$file" ;;
-                *)
-                    # any unencrypted file not "allowed" (aka, un-ignored) by '.gitignore' is reported
-                    git ls-files "$file" --exclude-standard --ignore ;;
+            *.gpg | *.ssl)
+                # all '*.gpg' and '*.ssl' files are expected to be encrypted
+                echo "$file"
+                ;;
+            *)
+                # any unencrypted file not "allowed" (aka, un-ignored) by '.gitignore' is reported
+                git ls-files "$file" --exclude-standard --ignore
+                ;;
             esac
-            )
+        )
     done
     # echo "non_allowed_files=$non_allowed_files"
     if [ -n "$non_allowed_files" ]; then
         echo "ERR!: attempting to commit files which do not seem to be GPG/OpenSSL encrypted; note: to force the commit, use \`git commit ... --no-verify\`"
-        for file in $non_allowed_files ; do
+        for file in $non_allowed_files; do
             git ls-files "$file" | xargs -r file
         done
         exit 1
