@@ -12,6 +12,9 @@ export DIR="${2:-${DIR}}"
 DIR="${DIR:-${HOME}/.secrets.devops}"
 
 DIR=$(
+    if test -e "${DIR}"; then
+        mv -- "${DIR}" "${DIR}.$(date +%Y%m%dT%H%MZ)"
+    fi
     mkdir -p -- "${DIR}"
     cd -- "${DIR}" || {
         echo "ERR!: unable to \`cd -- \"${DIR}\"\`" 1>&2
