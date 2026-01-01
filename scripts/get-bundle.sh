@@ -73,7 +73,7 @@ which git >/dev/null || { eval "${_INSTALL_deps}" || {
     # :: * `git bundle-fetch [FETCH]` # FETCH == a valid `curl` source ; from the CLI, simple file paths are converted to curl-compatible arguments
     git config --global alias.bundle-fetch '!f() { ROOT="$(git rev-parse --show-toplevel)" || { echo "git repository error" 1>&2 ; exit 1 ; } ; BUNDIR="${ROOT}/.git/bundle" ; if [ ! -d "${BUNDIR}" ] ; then mkdir -p "${BUNDIR}" ; chmod -R go-rwx "${BUNDIR}" ; fi ; FETCHER="curl -#L" ; eval "FETCH="" ; $(if [ -f "${BUNDIR}/git.bundle.env" ] ; then grep -E "^\s*(FETCH)=" "${BUNDIR}/git.bundle.env" ; fi )" ; [ -n "$1" ] && { if [ -z "${FETCH}" ] ; then git bundle-config FETCH "$1" ; fi ; FETCH="$1" ; } ; [ -f "${FETCH}" ] && { FETCH="$(readlink -f "${FETCH}")" ; FETCHER="cat" ; } ; eval "KEY="" ; $(if [ -f "${BUNDIR}/git.bundle.env" ] ; then grep -E "^\s*(KEY)=" "${BUNDIR}/git.bundle.env" ; fi )" ; OPTIONS="--passphrase "${KEY}"" ; if [ -n "${FETCH}" ] ; then echo "FETCHER=${FETCHER} ; FETCH=${FETCH}" ; ${FETCHER} "${FETCH}" | gpg --decrypt --batch --yes ${OPTIONS} > "${BUNDIR}/git.bundle" ; [ "$?" -ne 0 ] && { echo "ERR!: decryption error" 1>&2 ; exit 1 ; } || git bundle unbundle "${BUNDIR}/git.bundle" ; else echo "ERR!: missing FETCH/PULL source" 1>&2 ; exit 1 ; fi ; } ; f'
     # :: * `git bundle-pull [FETCH]` # FETCH == a valid `curl` source ; from the CLI, simple file paths are converted to curl-compatible arguments
-    git config --global alias.bundle-pull '!f() { git bundle-fetch $@ | grep -Ei "head$" | sed -E "s/\s+head//I" | xargs git checkout ; } ; f'
+    git config --global alias.bundle-pull '!f() { git bundle-fetch "$@" | grep -Ei "head$" | sed -E "s/\s+head//I" | xargs git checkout ; } ; f'
     #
 }
 # echo "cd -- \"${DIR}\""
